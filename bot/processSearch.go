@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/XiaoMengXinX/Music163Api-Go/api"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -40,20 +41,26 @@ func processSearch(message tgbotapi.Message, bot *tgbotapi.BotAPI) (err error) {
 	var inlineButton []tgbotapi.InlineKeyboardButton
 	var textMessage string
 	for i := 0; i < len(searchResult.Result.Songs) && i < 8; i++ {
-		var songArtists string
-		for i, artist := range searchResult.Result.Songs[i].Artists {
-			if i == 0 {
-				songArtists = artist.Name
-			} else {
-				songArtists = fmt.Sprintf("%s/%s", songArtists, artist.Name)
-			}
+		song := searchResult.Result.Songs[i]
+		escapedSongName := mdV2Replacer.Replace(song.Name)
+		songLink := fmt.Sprintf("[%s](https://music.163.com/song?id=%d)", escapedSongName, song.Id)
+
+		var songArtistsParts []string
+		for _, artist := range song.Artists {
+			escapedArtistName := mdV2Replacer.Replace(artist.Name)
+			artistLink := fmt.Sprintf("[%s](https://music.163.com/artist?id=%d)", escapedArtistName, artist.Id)
+			songArtistsParts = append(songArtistsParts, artistLink)
 		}
-		inlineButton = append(inlineButton, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%d", i+1), fmt.Sprintf("music %d", searchResult.Result.Songs[i].Id)))
-		textMessage = fmt.Sprintf("%s%d.「%s」 - %s\n", textMessage, i+1, searchResult.Result.Songs[i].Name, songArtists)
+		songArtists := strings.Join(songArtistsParts, " / ")
+
+		textMessage = fmt.Sprintf("%s%d\\. 「%s」 \\- %s\n", textMessage, i+1, songLink, songArtists)
+		inlineButton = append(inlineButton, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%d", i+1), fmt.Sprintf("music %d", song.Id)))
 	}
 	var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(inlineButton)
 	newEditMsg := tgbotapi.NewEditMessageText(message.Chat.ID, msgResult.MessageID, textMessage)
 	newEditMsg.ReplyMarkup = &numericKeyboard
+	newEditMsg.ParseMode = tgbotapi.ModeMarkdownV2
+	newEditMsg.DisableWebPagePreview = true
 	message, err = bot.Send(newEditMsg)
 	if err != nil {
 		return err
