@@ -14,7 +14,7 @@ import (
 	"github.com/XiaoMengXinX/Music163Api-Go/api"
 	"github.com/XiaoMengXinX/Music163Api-Go/types"
 	downloader "github.com/XiaoMengXinX/SimpleDownloader"
-	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -171,7 +171,16 @@ func processMusic(musicID int, message tgbotapi.Message, bot *tgbotapi.BotAPI) (
 	songInfo.Duration = songDetail.Songs[0].Dt / 1000
 	songInfo.SongName = songDetail.Songs[0].Name // 解析歌曲信息
 	songInfo.SongArtists = parseArtist(songDetail.Songs[0])
+
+	// 保存歌手ID列表
+	var artistIDs []string
+	for _, ar := range songDetail.Songs[0].Ar {
+		artistIDs = append(artistIDs, fmt.Sprintf("%d", ar.Id))
+	}
+	songInfo.SongArtistsIDs = strings.Join(artistIDs, ",")
+
 	songInfo.SongAlbum = songDetail.Songs[0].Al.Name
+	songInfo.AlbumID = songDetail.Songs[0].Al.Id
 	url := songURL.Data[0].Url
 	// 从 URL 中移除查询参数以正确获取扩展名
 	baseURL := url
@@ -295,17 +304,17 @@ func processMusic(musicID int, message tgbotapi.Message, bot *tgbotapi.BotAPI) (
 	}
 
 	var replacer = strings.NewReplacer("/", " ", "?", " ", "*", " ", ":", " ", "|", " ", "\\", " ", "<", " ", ">", " ", "\"", " ")
-	var newDir = cacheDir+"/"+fmt.Sprintf("%d", timeStamp)
+	var newDir = cacheDir + "/" + fmt.Sprintf("%d", timeStamp)
 	fileName := replacer.Replace(fmt.Sprintf("%v - %v.%v", strings.Replace(songInfo.SongArtists, "/", ",", -1), songInfo.SongName, songInfo.FileExt))
-	var filePath = newDir+"/"+fileName
-	err	= os.Mkdir(newDir, os.ModePerm)
+	var filePath = newDir + "/" + fileName
+	err = os.Mkdir(newDir, os.ModePerm)
 	if err != nil {
 		sendFailed(err)
 		return err
-    }
+	}
 	err = os.Rename(cacheDir+"/"+fmt.Sprintf("%d-%s", timeStamp, path.Base(url)), filePath)
 	if err != nil {
-		filePath = cacheDir+"/"+fmt.Sprintf("%d-%s", timeStamp, path.Base(url))
+		filePath = cacheDir + "/" + fmt.Sprintf("%d-%s", timeStamp, path.Base(url))
 	}
 
 	mark := marker.CreateMarker(songDetail.Songs[0], songURL.Data[0])
@@ -367,15 +376,7 @@ func processMusic(musicID int, message tgbotapi.Message, bot *tgbotapi.BotAPI) (
 }
 
 func sendMusic(songInfo SongInfo, musicPath, picPath string, message tgbotapi.Message, bot *tgbotapi.BotAPI) (audio tgbotapi.Message, err error) {
-	var numericKeyboard tgbotapi.InlineKeyboardMarkup
-	numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL(fmt.Sprintf("%s- %s", songInfo.SongName, songInfo.SongArtists), fmt.Sprintf("https://music.163.com/song?id=%d", songInfo.MusicID)),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonSwitch(sendMeTo, fmt.Sprintf("https://music.163.com/song?id=%d", songInfo.MusicID)),
-		),
-	)
+	// 移除按钮定义
 	var newAudio tgbotapi.AudioConfig
 	if songInfo.FileID != "" {
 		newAudio = tgbotapi.NewAudio(message.Chat.ID, tgbotapi.FileID(songInfo.FileID))
@@ -384,11 +385,64 @@ func sendMusic(songInfo SongInfo, musicPath, picPath string, message tgbotapi.Me
 		status := tgbotapi.NewChatAction(message.Chat.ID, "upload_document")
 		_, _ = bot.Send(status)
 	}
-	newAudio.Caption = fmt.Sprintf(musicInfo, songInfo.SongName, songInfo.SongArtists, songInfo.SongAlbum, songInfo.FileExt, float64(songInfo.MusicSize+songInfo.EmbPicSize)/1024/1024, float64(songInfo.BitRate)/1000, botName)
+
+	// 构建带HTML格式的音乐信息
+	var songNameHTML string
+	var artistsHTML string
+	var albumHTML string
+
+	// 构造歌曲名超链接
+	songNameHTML = fmt.Sprintf("<a href=\"https://music.163.com/song?id=%d\">%s</a>", songInfo.MusicID, songInfo.SongName)
+
+	// 构造歌手超链接
+	if songInfo.SongArtistsIDs != "" {
+		// 有歌手ID时构建超链接
+		artistIDs := strings.Split(songInfo.SongArtistsIDs, ",")
+		artists := strings.Split(songInfo.SongArtists, "/")
+
+		var artistParts []string
+		for i, artist := range artists {
+			var artistID int64 = 0
+			if i < len(artistIDs) {
+				artistID, _ = strconv.ParseInt(artistIDs[i], 10, 64)
+			}
+
+			artist = strings.TrimSpace(artist)
+			if artistID > 0 {
+				artistParts = append(artistParts, fmt.Sprintf("<a href=\"https://music.163.com/artist?id=%d\">%s</a>", artistID, artist))
+			} else {
+				artistParts = append(artistParts, artist)
+			}
+		}
+		artistsHTML = strings.Join(artistParts, " / ")
+	} else {
+		// 没有歌手ID时直接使用歌手名
+		artistsHTML = songInfo.SongArtists
+	}
+
+	// 构造专辑超链接
+	if songInfo.AlbumID > 0 {
+		albumHTML = fmt.Sprintf("<a href=\"https://music.163.com/album?id=%d\">%s</a>", songInfo.AlbumID, songInfo.SongAlbum)
+	} else {
+		albumHTML = songInfo.SongAlbum
+	}
+
+	// 构建完整HTML格式caption
+	caption := fmt.Sprintf("<b>「%s」- %s</b>\n专辑: %s\n#网易云音乐 #%s %.2fMB %.2fkbps\nvia @%s",
+		songNameHTML,
+		artistsHTML,
+		albumHTML,
+		songInfo.FileExt,
+		float64(songInfo.MusicSize+songInfo.EmbPicSize)/1024/1024,
+		float64(songInfo.BitRate)/1000,
+		botName)
+
+	newAudio.Caption = caption
+	newAudio.ParseMode = tgbotapi.ModeHTML
 	newAudio.Title = fmt.Sprintf("%s", songInfo.SongName)
 	newAudio.Performer = songInfo.SongArtists
 	newAudio.Duration = songInfo.Duration
-	newAudio.ReplyMarkup = numericKeyboard
+	// 移除ReplyMarkup的设置
 	newAudio.ReplyToMessageID = message.MessageID
 	if songInfo.ThumbFileID != "" {
 		newAudio.Thumb = tgbotapi.FileID(songInfo.ThumbFileID)
