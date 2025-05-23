@@ -50,8 +50,8 @@ var mdV2Replacer = strings.NewReplacer(
 )
 
 var (
-	aboutText = `*Music163bot-Go v2*
-Github: https://github.com/XiaoMengXinX/Music163bot-Go
+	aboutText = `*Music163bot-Go v2 Fork*
+Github: https://github.com/liuran001/Music163bot-Go
 
 \[编译环境] %s
 \[编译版本] %s

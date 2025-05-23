@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/XiaoMengXinX/Music163Api-Go/utils"
-	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -110,6 +110,11 @@ func Start(conf map[string]string) (actionCode int) {
 					go func() {
 						musicID, _ := strconv.Atoi(updateMsg.CommandArguments())
 						if musicID == 0 {
+							// 当 /start 命令没有参数时，执行与 /about 相同的操作
+							err := printAbout(updateMsg, bot)
+							if err != nil {
+								logrus.Errorln(err)
+							}
 							return
 						}
 						err := processMusic(musicID, updateMsg, bot)
