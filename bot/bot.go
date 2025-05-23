@@ -209,10 +209,10 @@ func Start(conf map[string]string) (actionCode int) {
 					}
 				}()
 			} else {
-				// 私聊无需 /music 前缀
+				// 私聊无需 /search 前缀
 				if updateMsg.Chat.IsPrivate() && update.Message.Command() == "" && updateMsg.Text != "" {
 					go func() {
-						err := processAnyMusic(updateMsg, bot)
+						err := processSearch(updateMsg, bot)
 						if err != nil {
 							logrus.Errorln(err)
 						}

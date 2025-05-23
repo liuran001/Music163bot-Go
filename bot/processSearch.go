@@ -9,7 +9,14 @@ import (
 
 func processSearch(message tgbotapi.Message, bot *tgbotapi.BotAPI) (err error) {
 	var msgResult tgbotapi.Message
-	if message.CommandArguments() == "" {
+	var keyword string
+	if message.Chat.IsPrivate() && !message.IsCommand() {
+		keyword = message.Text
+	} else {
+		keyword = message.CommandArguments()
+	}
+
+	if keyword == "" {
 		msg := tgbotapi.NewMessage(message.Chat.ID, inputKeyword)
 		msg.ReplyToMessageID = message.MessageID
 		msgResult, err = bot.Send(msg)
@@ -22,7 +29,7 @@ func processSearch(message tgbotapi.Message, bot *tgbotapi.BotAPI) (err error) {
 		return err
 	}
 	searchResult, _ := api.SearchSong(data, api.SearchSongConfig{
-		Keyword: message.CommandArguments(),
+		Keyword: keyword,
 		Limit:   10,
 	})
 	if len(searchResult.Result.Songs) == 0 {
