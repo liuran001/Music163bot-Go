@@ -58,6 +58,46 @@ func processMusic(musicID int, message tgbotapi.Message, bot *tgbotapi.BotAPI) (
 	db := MusicDB.Session(&gorm.Session{})
 	err = db.Where("music_id = ?", musicID).First(&songInfo).Error
 	if err == nil {
+		// 检查缓存中的数据是否包含歌手ID或专辑ID
+		needUpdate := songInfo.SongArtistsIDs == "" || songInfo.AlbumID == 0
+
+		if needUpdate {
+			logrus.Infoln("缓存中缺少歌手ID或专辑ID，尝试重新获取歌曲信息")
+
+			// 尝试重新获取歌曲信息以更新歌手ID和专辑ID
+			b := api.NewBatch(
+				api.BatchAPI{
+					Key:  api.SongDetailAPI,
+					Json: api.CreateSongDetailReqJson([]int{musicID}),
+				},
+			)
+
+			if b.Do(data).Error == nil {
+				_, result := b.Parse()
+
+				var songDetail types.SongsDetailData
+				_ = json.Unmarshal([]byte(result[api.SongDetailAPI]), &songDetail)
+
+				if len(songDetail.Songs) > 0 {
+					// 更新歌手ID列表
+					var artistIDs []string
+					for _, ar := range songDetail.Songs[0].Ar {
+						artistIDs = append(artistIDs, fmt.Sprintf("%d", ar.Id))
+					}
+					songInfo.SongArtistsIDs = strings.Join(artistIDs, ",")
+
+					// 更新专辑ID
+					songInfo.AlbumID = songDetail.Songs[0].Al.Id
+
+					// 保存更新后的信息到数据库
+					db.Save(&songInfo)
+					logrus.Infoln("成功更新歌曲信息的歌手ID和专辑ID")
+				}
+			} else {
+				logrus.Errorln("重新获取歌曲信息失败，将使用原缓存数据")
+			}
+		}
+
 		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(musicInfoMsg+hitCache, songInfo.SongName, songInfo.SongAlbum, songInfo.FileExt, float64(songInfo.MusicSize)/1024/1024))
 		msg.ReplyToMessageID = message.MessageID
 		msgResult, err = bot.Send(msg)
@@ -79,6 +119,7 @@ func processMusic(musicID int, message tgbotapi.Message, bot *tgbotapi.BotAPI) (
 
 		return err
 	}
+
 	msg := tgbotapi.NewMessage(message.Chat.ID, waitForDown)
 	msg.ReplyToMessageID = message.MessageID
 	msgResult, err = bot.Send(msg)
@@ -376,7 +417,6 @@ func processMusic(musicID int, message tgbotapi.Message, bot *tgbotapi.BotAPI) (
 }
 
 func sendMusic(songInfo SongInfo, musicPath, picPath string, message tgbotapi.Message, bot *tgbotapi.BotAPI) (audio tgbotapi.Message, err error) {
-	// 移除按钮定义
 	var newAudio tgbotapi.AudioConfig
 	if songInfo.FileID != "" {
 		newAudio = tgbotapi.NewAudio(message.Chat.ID, tgbotapi.FileID(songInfo.FileID))
@@ -427,14 +467,13 @@ func sendMusic(songInfo SongInfo, musicPath, picPath string, message tgbotapi.Me
 		albumHTML = songInfo.SongAlbum
 	}
 
-	// 构建完整HTML格式caption
-	caption := fmt.Sprintf("<b>「%s」- %s</b>\n专辑: %s\n#网易云音乐 #%s %.2fMB %.2fkbps\nvia @%s",
+	caption := fmt.Sprintf("<b>「%s」- %s</b>\n专辑: %s\n<blockquote>%.2fMB %.2fkbps\n#网易云音乐 #%s\n</blockquote>via @%s",
 		songNameHTML,
 		artistsHTML,
 		albumHTML,
-		songInfo.FileExt,
 		float64(songInfo.MusicSize+songInfo.EmbPicSize)/1024/1024,
 		float64(songInfo.BitRate)/1000,
+		songInfo.FileExt,
 		botName)
 
 	newAudio.Caption = caption
@@ -442,7 +481,6 @@ func sendMusic(songInfo SongInfo, musicPath, picPath string, message tgbotapi.Me
 	newAudio.Title = fmt.Sprintf("%s", songInfo.SongName)
 	newAudio.Performer = songInfo.SongArtists
 	newAudio.Duration = songInfo.Duration
-	// 移除ReplyMarkup的设置
 	newAudio.ReplyToMessageID = message.MessageID
 	if songInfo.ThumbFileID != "" {
 		newAudio.Thumb = tgbotapi.FileID(songInfo.ThumbFileID)
