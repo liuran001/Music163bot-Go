@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 )
 
 // Logger wraps slog.Logger to satisfy internal.Logger.

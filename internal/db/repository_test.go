@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
-	logpkg "github.com/XiaoMengXinX/Music163bot-Go/v2/internal/logger"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
+	logpkg "github.com/liuran001/Music163bot-Go/v3/internal/logger"
 	"gorm.io/gorm/logger"
 )
 

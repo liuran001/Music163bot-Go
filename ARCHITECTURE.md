@@ -7,8 +7,7 @@ This project is structured around a layered architecture to keep Telegram transp
 ## Directory Layout
 
 ```
-cmd/
-  music163bot/           # Application entry point
+main.go                  # Application entry point
 internal/
   app/                   # Dependency injection and lifecycle
   config/                # Configuration (Viper + INI)
@@ -38,5 +37,5 @@ tests/
 
 ## Notes
 
-- Legacy `bot/` package remains until final cleanup.
+- Legacy `bot/` package已移除，代码全部迁移到 `internal/`.
 - Dynamic update support is abstracted in `internal/updater/` for future integration.

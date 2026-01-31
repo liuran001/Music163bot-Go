@@ -3,7 +3,7 @@ package handler
 import (
 	"testing"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 )
 
 func TestParseMusicIDFromURL(t *testing.T) {

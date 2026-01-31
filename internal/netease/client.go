@@ -8,8 +8,8 @@ import (
 
 	"github.com/XiaoMengXinX/Music163Api-Go/api"
 	"github.com/XiaoMengXinX/Music163Api-Go/utils"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 	"github.com/sony/gobreaker"
 )
 

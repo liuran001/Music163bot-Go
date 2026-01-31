@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 )
 
 // Updater provides a placeholder for dynamic update integration.

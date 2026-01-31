@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 )
 
 // InlineSearchHandler handles inline queries.

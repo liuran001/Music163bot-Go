@@ -16,8 +16,8 @@ import (
 	"github.com/XiaoMengXinX/Music163Api-Go/api"
 	"github.com/XiaoMengXinX/Music163Api-Go/types"
 	"github.com/XiaoMengXinX/Music163Api-Go/utils"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
 	"github.com/go-telegram/bot/models"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 )
 
 var (

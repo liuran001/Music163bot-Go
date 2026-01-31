@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/config"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/db"
-	logpkg "github.com/XiaoMengXinX/Music163bot-Go/v2/internal/logger"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/netease"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/telegram"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/telegram/handler"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/worker"
+	"github.com/liuran001/Music163bot-Go/v3/internal/config"
+	"github.com/liuran001/Music163bot-Go/v3/internal/db"
+	logpkg "github.com/liuran001/Music163bot-Go/v3/internal/logger"
+	"github.com/liuran001/Music163bot-Go/v3/internal/netease"
+	"github.com/liuran001/Music163bot-Go/v3/internal/telegram"
+	"github.com/liuran001/Music163bot-Go/v3/internal/telegram/handler"
+	"github.com/liuran001/Music163bot-Go/v3/internal/worker"
 	gormlogger "gorm.io/gorm/logger"
 )
 

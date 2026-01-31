@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
 	"github.com/glebarez/sqlite"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

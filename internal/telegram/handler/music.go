@@ -13,10 +13,10 @@ import (
 
 	marker "github.com/XiaoMengXinX/163KeyMarker"
 	"github.com/XiaoMengXinX/Music163Api-Go/types"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
 	downloader "github.com/XiaoMengXinX/SimpleDownloader"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
 )
 
 // MusicHandler handles /music and related commands.

@@ -1,0 +1,26 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.bak
+
+# Go build/test
+*.test
+*.out
+
+# Runtime
+log/
+cache/
+*.db
+*.db-shm
+*.db-wal
+config.ini
+*.mp3
+*.flac
+
+# IDE
+.idea/
+
+# Internal tools
+.sisyphus/

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal"
-	"github.com/XiaoMengXinX/Music163bot-Go/v2/internal/config"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/liuran001/Music163bot-Go/v3/internal"
+	"github.com/liuran001/Music163bot-Go/v3/internal/config"
 )
 
 // Bot wraps go-telegram/bot with application configuration.
